@@ -1,0 +1,16 @@
+# Node modules (backend + frontend)
+node_modules/
+
+# Environment variables
+.env
+
+# Expo / React Native
+.expo/
+.expo-shared/
+*.log
+ios/
+android/
+build/
+
+# VS Code
+.vscode/
