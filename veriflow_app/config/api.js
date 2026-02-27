@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
 // Your laptop/server IP address - update this when your IP changes
 // Current IP: 10.1.30.65 (updates when network changes)
 // Run './update-server-ip.sh' to automatically update this IP
-const SERVER_IP = "10.1.30.65";
+const SERVER_IP = "192.168.1.10";
 const SERVER_PORT = "5001";
 
 /**
@@ -21,7 +21,7 @@ const getApiBase = () => {
 
   if (Platform.OS === 'android') {
     // Use your LAN IP, not 10.0.2.2, for Expo Go
-    return "http://172.28.128.251:5001";
+    return `http://${SERVER_IP}:${SERVER_PORT}`;
   }
 
   if (Platform.OS === 'ios') {
