@@ -119,12 +119,10 @@ export default function MarketplaceDashboard({ navigation }) {
   };
 
   const handleSellerPress = (seller) => {
-    // Note: You don't have SellerDetailsScreen in App.js yet!
     Alert.alert('Coming Soon', `Detailed profile for ${seller.name} is under construction.`);
   };
 
   const handleProjectPurchase = (project, seller) => {
-    // Use the real Wagmi connection status!
     if (!isConnected) {
       Alert.alert(
         'Wallet Not Connected',
@@ -248,15 +246,16 @@ export default function MarketplaceDashboard({ navigation }) {
 
           {/* --- THE REAL WALLET BUTTON --- */}
           <W3mButton />
-          
+
         </View>
 
         {/* Marketplace Info */}
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>🌿 About Carbon Credits</Text>
           <Text style={styles.infoText}>
+            {/* ✅ FIXED: Added optional chaining (?.) and fallback value to prevent crash */}
             Each credit represents verified CO₂ sequestration from sustainable
-            forestry projects. Fixed at ${blockchainService.CARBON_CREDIT_PRICING.pricePerTonUSD}/ton.
+            forestry projects. Fixed at ${blockchainService?.CARBON_CREDIT_PRICING?.pricePerTonUSD ?? '15'}/ton.
           </Text>
         </View>
 

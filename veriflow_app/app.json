@@ -7,12 +7,14 @@
     "icon": "./assets/veriflow-logo.png",
     "scheme": "veriflowapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
+      "newArchEnabled": false, 
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.veriflow-app"
     },
     "android": {
+      "newArchEnabled": false, 
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/veriflow-logo.png"

@@ -27,7 +27,7 @@ const PINATA_CONFIG = {
  * ===== CARBON CREDIT SMART CONTRACT =====
  */
 const CARBON_CREDIT_CONTRACT = {
-  address: '0xe848076708FEA2a9f4C03be19E4dD76a560c8719',
+  address: '0xe848076708FEA2a9f4C03be19E4dDD76a560c8719',
   abi: [
     {
       "inputs": [
@@ -78,18 +78,22 @@ const CARBON_CREDIT_CONTRACT = {
   ],
 };
 
+// ✅ FIXED: This was defined but never exported before
 const CARBON_CREDIT_PRICING = {
-  pricePerTonUSD: 50, 
-  pricePerTonMATIC: 0.02, 
+  pricePerTonUSD: 50,
+  pricePerTonMATIC: 0.02,
 };
 
 /**
  * ===== UTILITY FUNCTIONS =====
  */
 const kgToTons = (kg) => kg / 1000;
-const kgToWei = (kg) => ethers.utils.parseUnits(kg.toString(), 18); // Fixed for ethers v5
-const weiToKg = (wei) => parseFloat(ethers.utils.formatUnits(wei, 18)); // Fixed for ethers v5
-const calculateCarbonCreditPrice = (carbonKg) => kgToTons(carbonKg) * CARBON_CREDIT_PRICING.pricePerTonMATIC;
+const kgToWei = (kg) => ethers.utils.parseUnits(kg.toString(), 18);
+const weiToKg = (wei) => parseFloat(ethers.utils.formatUnits(wei, 18));
+
+// ✅ FIXED: This was defined but never exported before
+const calculateCarbonCreditPrice = (carbonKg) =>
+  kgToTons(carbonKg) * CARBON_CREDIT_PRICING.pricePerTonMATIC;
 
 /**
  * ===== IPFS / PINATA FUNCTIONS =====
@@ -98,8 +102,16 @@ const uploadMetadataToPinata = async (metadata) => {
   try {
     const response = await axios.post(
       `${PINATA_CONFIG.pinataApiUrl}/pinning/pinJSONToIPFS`,
-      { pinataContent: metadata, pinataMetadata: { name: `Carbon-Credit-${metadata.projectDetails?.id || 'new'}` } },
-      { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${PINATA_CONFIG.jwt}` } }
+      {
+        pinataContent: metadata,
+        pinataMetadata: { name: `Carbon-Credit-${metadata.projectDetails?.id || 'new'}` },
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${PINATA_CONFIG.jwt}`,
+        },
+      }
     );
     return response.data.IpfsHash;
   } catch (error) {
@@ -114,9 +126,16 @@ const uploadImageToPinata = async (imageUri, fileName) => {
     formData.append('file', { uri: imageUri, type: 'image/jpeg', name: fileName || 'image.jpg' });
     formData.append('pinataMetadata', JSON.stringify({ name: fileName || 'image.jpg' }));
 
-    const response = await axios.post(`${PINATA_CONFIG.pinataApiUrl}/pinning/pinFileToIPFS`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${PINATA_CONFIG.jwt}` },
-    });
+    const response = await axios.post(
+      `${PINATA_CONFIG.pinataApiUrl}/pinning/pinFileToIPFS`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${PINATA_CONFIG.jwt}`,
+        },
+      }
+    );
     return response.data.IpfsHash;
   } catch (error) {
     console.error('Pinata Image Error:', error);
@@ -127,23 +146,23 @@ const uploadImageToPinata = async (imageUri, fileName) => {
 /**
  * ===== BLOCKCHAIN INTERACTION FUNCTIONS =====
  */
-
 const mintCarbonCreditNFT = async (project, mlResults, walletAddress, imageUri = null) => {
   try {
     let imageIpfsHash = null;
     if (imageUri) imageIpfsHash = await uploadImageToPinata(imageUri, `${project._id}-image.jpg`);
 
     const carbonKg = mlResults.final_results?.carbon_sequestration_kg || 0;
-    
-    // Create standard ERC721 Metadata
+
     const metadata = {
       name: `Veriflow Carbon Credit #${project._id.slice(-6)}`,
       description: `Verified ${kgToTons(carbonKg).toFixed(2)} tons of CO2 sequestered.`,
-      image: imageIpfsHash ? `${PINATA_CONFIG.pinataGatewayUrl}${imageIpfsHash}` : 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800',
+      image: imageIpfsHash
+        ? `${PINATA_CONFIG.pinataGatewayUrl}${imageIpfsHash}`
+        : 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800',
       attributes: [
         { trait_type: 'Project ID', value: project._id },
-        { trait_type: 'Carbon (kg)', value: carbonKg, display_type: 'number' }
-      ]
+        { trait_type: 'Carbon (kg)', value: carbonKg, display_type: 'number' },
+      ],
     };
 
     const metadataIpfsHash = await uploadMetadataToPinata(metadata);
@@ -154,9 +173,9 @@ const mintCarbonCreditNFT = async (project, mlResults, walletAddress, imageUri =
       metadataURI,
       projectId: project._id,
       carbonAmount: kgToWei(carbonKg).toString(),
-      price: calculateCarbonCreditPrice(carbonKg), // Used here to resolve the ESLint warning
+      price: calculateCarbonCreditPrice(carbonKg),
       contractAddress: CARBON_CREDIT_CONTRACT.address,
-      walletAddress
+      walletAddress,
     };
   } catch (error) {
     console.error('Minting Prep Error:', error);
@@ -166,22 +185,25 @@ const mintCarbonCreditNFT = async (project, mlResults, walletAddress, imageUri =
 
 const fetchUserNFTs = async (walletAddress) => {
   try {
-    // Fixed for ethers v5
     const provider = new ethers.providers.JsonRpcProvider(POLYGON_AMOY_CONFIG.rpcUrl);
-    const contract = new ethers.Contract(CARBON_CREDIT_CONTRACT.address, CARBON_CREDIT_CONTRACT.abi, provider);
-    
+    const contract = new ethers.Contract(
+      CARBON_CREDIT_CONTRACT.address,
+      CARBON_CREDIT_CONTRACT.abi,
+      provider
+    );
+
     const tokenIds = await contract.tokensOfOwner(walletAddress);
-    
+
     let userNFTs = [];
     for (let id of tokenIds) {
       const tokenURI = await contract.tokenURI(id);
       const creditData = await contract.getCarbonCredit(id);
-      
+
       userNFTs.push({
         tokenId: id.toString(),
         projectId: creditData.projectId,
         carbonKg: weiToKg(creditData.carbonAmount),
-        metadataUrl: tokenURI
+        metadataUrl: tokenURI,
       });
     }
     return userNFTs;
@@ -191,11 +213,17 @@ const fetchUserNFTs = async (walletAddress) => {
   }
 };
 
+// ✅ FIXED: Added all missing exports — CARBON_CREDIT_PRICING, kgToTons, calculateCarbonCreditPrice
 export default {
   POLYGON_AMOY_CONFIG,
   CARBON_CREDIT_CONTRACT,
+  CARBON_CREDIT_PRICING,        // ← was missing
+  kgToTons,                     // ← was missing
   kgToWei,
+  weiToKg,                      // ← was missing
+  calculateCarbonCreditPrice,   // ← was missing
   uploadMetadataToPinata,
+  uploadImageToPinata,          // ← was missing
   mintCarbonCreditNFT,
-  fetchUserNFTs
+  fetchUserNFTs,
 };
