@@ -41,9 +41,10 @@ export default function MarketplaceDashboard({ navigation }) {
       const token = await AsyncStorage.getItem('userToken');
 
       if (!token) {
-        Alert.alert('Authentication Required', 'Please log in to view the marketplace');
-        return;
-      }
+       // Just show empty state silently, no alert
+       setLoading(false);
+       return;
+}
 
       // Fetch all projects from your real MongoDB Backend
       const response = await axios.get(`${API_BASE}/api/projects`, {

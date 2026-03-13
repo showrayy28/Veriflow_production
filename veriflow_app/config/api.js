@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
 // Your laptop/server IP address - update this when your IP changes
 // Current IP: 10.1.30.65 (updates when network changes)
 // Run './update-server-ip.sh' to automatically update this IP
-const SERVER_IP = "172.26.185.110";
+const SERVER_IP = "10.140.130.110";
 const SERVER_PORT = "5001";
 
 /**
